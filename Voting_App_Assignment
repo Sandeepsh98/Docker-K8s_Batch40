@@ -1,22 +1,63 @@
-Steps Followed :
-  Repo Cloning :
-    [root@ip-172-31-7-5 ~]# git clone https://github.com/ashishrpandey/example-voting-app
+1. APP DEPLOYMENT
+  Steps Followed :
+        Repo Cloning :
+          [root@ip-172-31-7-5 ~]# git clone https://github.com/ashishrpandey/example-voting-app
 
-  Voting App deployment:
-    [root@ip-172-31-7-5 k8s-specifications]# kubectl apply -f . (All services started)
+        Voting App deployment:
+          [root@ip-172-31-7-5 k8s-specifications]# kubectl apply -f . (All services started)
 
-    [root@ip-172-31-7-5 k8s-specifications]# kubectl get pods -o wide
-      NAME                      READY   STATUS    RESTARTS   AGE   IP               NODE                                            NOMINATED NODE   READINESS GATES
-      db-b54cd94f4-j4f8s        1/1     Running   0          11s   192.168.63.217   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
-      redis-868d64d78-g99js     1/1     Running   0          11s   192.168.63.219   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
-      result-5d57b59f4b-l2vcx   1/1     Running   0          10s   192.168.63.218   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
-      vote-94849dc97-5g5j6      1/1     Running   0          10s   192.168.63.220   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
-      worker-dd46d7584-jz2fw    1/1     Running   0          10s   192.168.63.221   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
+          [root@ip-172-31-7-5 k8s-specifications]# kubectl get pods -o wide
+            NAME                      READY   STATUS    RESTARTS   AGE   IP               NODE                                            NOMINATED NODE   READINESS GATES
+            db-b54cd94f4-j4f8s        1/1     Running   0          11s   192.168.63.217   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
+            redis-868d64d78-g99js     1/1     Running   0          11s   192.168.63.219   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
+            result-5d57b59f4b-l2vcx   1/1     Running   0          10s   192.168.63.218   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
+            vote-94849dc97-5g5j6      1/1     Running   0          10s   192.168.63.220   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
+            worker-dd46d7584-jz2fw    1/1     Running   0          10s   192.168.63.221   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
 
-Result :
-voting-service working on http://3.0.206.3:31002/
-result-service working on http://3.0.206.3:31003/
+  Result :
+        voting-service working on http://3.0.206.3:31002/
+        result-service working on http://3.0.206.3:31003/
 
-Observation:
-Voting on cats or dogs changed the results on result page.
+  Observation:
+      Voting on cats or dogs changed the results on result page.
+  
+ 2. DELETING VOTING POD :
+ 
+ [root@ip-172-31-7-5 k8s-specifications]# kubectl delete pod vote-94849dc97-5g5j6
+  pod "vote-94849dc97-5g5j6" deleted
+  
+  [root@ip-172-31-7-5 k8s-specifications]# kubectl get pods -o wide
+  NAME                      READY   STATUS    RESTARTS   AGE   IP               NODE                                            NOMINATED NODE   READINESS GATES
+  db-b54cd94f4-j4f8s        1/1     Running   0          47m   192.168.63.217   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
+  redis-868d64d78-g99js     1/1     Running   0          47m   192.168.63.219   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
+  result-5d57b59f4b-l2vcx   1/1     Running   0          47m   192.168.63.218   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
+  vote-94849dc97-bjsmb      1/1     Running   0          19s   192.168.63.222   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
+  worker-dd46d7584-jz2fw    1/1     Running   0          47m   192.168.63.221   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
+  
+  Result :
+    New pod was created. Pod vote-94849dc97-5g5j6  was replaced by vote-94849dc97-bjsmb
+  
+  Observation :
+    Did not affect voting and result service. Changes were still observed in result page during and after pod termination. 
 
+3. DELETING WORKER POD :
+
+  [root@ip-172-31-7-5 k8s-specifications]# kubectl delete pod worker-dd46d7584-jz2fw
+    pod "worker-dd46d7584-jz2fw" deleted
+
+  [root@ip-172-31-7-5 k8s-specifications]# kubectl get pods -o wide
+  NAME                      READY   STATUS    RESTARTS   AGE     IP               NODE                                            NOMINATED NODE   READINESS GATES
+  db-b54cd94f4-j4f8s        1/1     Running   0          52m     192.168.63.217   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
+  redis-868d64d78-g99js     1/1     Running   0          52m     192.168.63.219   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
+  result-5d57b59f4b-l2vcx   1/1     Running   0          52m     192.168.63.218   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
+  vote-94849dc97-bjsmb      1/1     Running   0          4m43s   192.168.63.222   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
+  worker-dd46d7584-zt4zk    1/1     Running   0          54s     192.168.63.223   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
+
+ Result :
+    New pod was created. Pod worker-dd46d7584-jz2fw  was replaced by worker-dd46d7584-zt4zk
+  
+  Observation :
+    Did not affect voting and result service. Changes were still observed in result page during and after pod termination. 
+
+4. DELETING
+   
