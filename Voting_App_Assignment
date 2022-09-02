@@ -1,10 +1,10 @@
 1. APP DEPLOYMENT
-  Steps Followed :
+  Steps :
         Repo Cloning :
           [root@ip-172-31-7-5 ~]# git clone https://github.com/ashishrpandey/example-voting-app
 
         Voting App deployment:
-          [root@ip-172-31-7-5 k8s-specifications]# kubectl apply -f . (All services started)
+          [root@ip-172-31-7-5 k8s-specifications]# kubectl apply -f . (All pods started)
 
           [root@ip-172-31-7-5 k8s-specifications]# kubectl get pods -o wide
             NAME                      READY   STATUS    RESTARTS   AGE   IP               NODE                                            NOMINATED NODE   READINESS GATES
@@ -19,45 +19,63 @@
         result-service working on http://3.0.206.3:31003/
 
   Observation:
-      Voting on cats or dogs changed the results on result page.
+      Vote captured. Changed the results on result app.
   
  2. DELETING VOTING POD :
  
  [root@ip-172-31-7-5 k8s-specifications]# kubectl delete pod vote-94849dc97-5g5j6
   pod "vote-94849dc97-5g5j6" deleted
   
-  [root@ip-172-31-7-5 k8s-specifications]# kubectl get pods -o wide
-  NAME                      READY   STATUS    RESTARTS   AGE   IP               NODE                                            NOMINATED NODE   READINESS GATES
-  db-b54cd94f4-j4f8s        1/1     Running   0          47m   192.168.63.217   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
-  redis-868d64d78-g99js     1/1     Running   0          47m   192.168.63.219   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
-  result-5d57b59f4b-l2vcx   1/1     Running   0          47m   192.168.63.218   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
-  vote-94849dc97-bjsmb      1/1     Running   0          19s   192.168.63.222   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
-  worker-dd46d7584-jz2fw    1/1     Running   0          47m   192.168.63.221   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
-  
   Result :
-    New pod was created. Pod vote-94849dc97-5g5j6  was replaced by vote-94849dc97-bjsmb
+    New Vote pod created and older one terminated.
   
   Observation :
-    Did not affect voting and result service. Changes were still observed in result page during and after pod termination. 
+    Changes were still observed in result page during and after pod termination. Replicas set let the voting pod to work fine.
 
 3. DELETING WORKER POD :
 
   [root@ip-172-31-7-5 k8s-specifications]# kubectl delete pod worker-dd46d7584-jz2fw
     pod "worker-dd46d7584-jz2fw" deleted
 
-  [root@ip-172-31-7-5 k8s-specifications]# kubectl get pods -o wide
-  NAME                      READY   STATUS    RESTARTS   AGE     IP               NODE                                            NOMINATED NODE   READINESS GATES
-  db-b54cd94f4-j4f8s        1/1     Running   0          52m     192.168.63.217   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
-  redis-868d64d78-g99js     1/1     Running   0          52m     192.168.63.219   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
-  result-5d57b59f4b-l2vcx   1/1     Running   0          52m     192.168.63.218   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
-  vote-94849dc97-bjsmb      1/1     Running   0          4m43s   192.168.63.222   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
-  worker-dd46d7584-zt4zk    1/1     Running   0          54s     192.168.63.223   ip-172-31-7-5.ap-southeast-1.compute.internal   <none>           <none>
-
  Result :
-    New pod was created. Pod worker-dd46d7584-jz2fw  was replaced by worker-dd46d7584-zt4zk
+    New Worker pod created and older one terminated.
   
   Observation :
-    Did not affect voting and result service. Changes were still observed in result page during and after pod termination. 
+   Changes were still observed in result page after pod deletion. Replicas set let the Worker pod to work fine. 
 
-4. DELETING
+4. DELETING DB POD:
+    
+  [root@ip-172-31-7-5 k8s-specifications]# kubectl delete pod db-b54cd94f4-j4f8s
+  pod "db-b54cd94f4-j4f8s" deleted
+  
+  Result :
+    New db pod created and older one terminated. Worker pod restarted. But all pods are working fine.
+    
+    NAME                      READY   STATUS    RESTARTS   AGE
+    db-b54cd94f4-g97zk        1/1     Running   0          19h
+    redis-868d64d78-g99js     1/1     Running   0          20h
+    result-5d57b59f4b-l2vcx   1/1     Running   0          20h
+    vote-94849dc97-bjsmb      1/1     Running   0          19h
+    worker-dd46d7584-zt4zk    1/1     Running   1          19h
+  
+  Observation :
+     Application is not working as voting results were not seen after pod termination.
+     During db pod deletion, worker was not able to connect to the existing db. 
+     After new db pod created, new votes may be pushed by worker pod to db but result app is not able to fetch from db service.
+     Result app is still connected to older db pod through socket connection. It was not able to connect to new db pod.
+
+5. MAKING THE RESULT APP WORK AGAIN
+    
+    Restart the result pod by deleting it again. It will make a fresh connection to the new db pod. 
+    
+    [root@ip-172-31-7-5 k8s-specifications]# kubectl delete pod result-5d57b59f4b-l2vcx
+     pod "result-5d57b59f4b-l2vcx" deleted
+     
+     Observation : 
+        Overall app is working fine again.
+
+   
+  
+
+  
    
