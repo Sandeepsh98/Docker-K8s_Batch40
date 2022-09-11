@@ -1,0 +1,1 @@
+If a new node is added in  cluster then DaemonSet will automatically allocate pod. Similarly, if a node is deleted then the pod running on the node is also destroyed, it will not reschedule the pod on different nodes as in case of ReplicaSet.
